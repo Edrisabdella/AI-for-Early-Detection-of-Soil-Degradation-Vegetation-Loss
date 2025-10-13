@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/app/models/ndvi_model.h5
+    volumes:
+      - ./backend/app:/app/app
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:4173"
+    environment:
+      - MAPBOX_TOKEN=${MAPBOX_TOKEN:-}
