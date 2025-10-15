@@ -6,10 +6,6 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
     
-    defaults:
-      run:
-        working-directory: ./backend
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -22,25 +18,20 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc g++ libgdal-dev python3-dev
+        sudo apt-get install -y gcc g++ libgdal-dev
     
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Test critical imports
+    - name: Test imports and application
       run: |
-        python -c "
-        try:
-            from main import app
-            print('✓ FastAPI app import: SUCCESS')
-        except Exception as e:
-            print(f'✗ FastAPI app import: FAILED - {e}')
-            exit(1)
-        "
+        python -c "from main import app; print('✓ FastAPI app imported successfully')"
+        python -c "import tensorflow; print('✓ TensorFlow imported successfully')"
+        python -c "import rasterio; print('✓ Rasterio imported successfully')"
     
-    - name: Install flake8 and run linting
+    - name: Run linting
       run: |
         pip install flake8
-        flake8 app/ --max-line-length=127 --extend-ignore=E203,W503,E501 --count --show-source --statistics
+        flake8 app/ --max-line-length=127 --extend-ignore=E203,W503,E501
