@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraGuard | AI-Powered Land Degradation Detection</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #8bc34a;
+            --dark-color: #1b5e20;
+            --light-color: #e8f5e9;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --info-color: #2196f3;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            margin-bottom: 1.5rem;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-card {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        
+        .tech-stack {
+            background-color: var(--light-color);
+            padding: 60px 0;
+        }
+        
+        .tech-item {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .tech-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .map-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .risk-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .risk-high {
+            background-color: var(--danger-color);
+        }
+        
+        .risk-medium {
+            background-color: var(--warning-color);
+        }
+        
+        .risk-low {
+            background-color: var(--secondary-color);
+        }
+        
+        .impact-metric {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+        
+        .metric-label {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .team-member {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .team-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem;
+            border: 5px solid var(--light-color);
+        }
+        
+        .roadmap-timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .roadmap-timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: var(--primary-color);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+        }
+        
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid var(--primary-color);
+            border-radius: 50%;
+            top: 15px;
+            z-index: 1;
+        }
+        
+        .left {
+            left: 0;
+        }
+        
+        .right {
+            left: 50%;
+        }
+        
+        .left::after {
+            right: -10px;
+        }
+        
+        .right::after {
+            left: -10px;
+        }
+        
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: white;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+        }
+        
+        @media (max-width: 768px) {
+            .roadmap-timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .timeline-item::after {
+                left: 21px;
+            }
+            
+            .right {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-earth-americas me-2"></i>TerraGuard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#overview">Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#problem">Problem</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#solution">Solution</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#demo">Demo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#technology">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#impact">Impact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">AI-Powered Early Detection of Soil Degradation</h1>
+                    <p class="lead mb-4">Protecting our planet's vital resources through advanced machine learning and satellite monitoring</p>
+                    <a href="#demo" class="btn btn-success btn-lg me-2">View Live Demo</a>
+                    <a href="#contact" class="btn btn-outline-light btn-lg">Get Involved</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Project Overview</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <p class="lead">TerraGuard is an open-source, AI-powered platform designed to tackle the silent crisis of land degradation through early detection and proactive intervention.</p>
+                    <p>By leveraging cutting-edge Machine Learning, GIS, and Remote Sensing technologies, we identify the earliest signs of soil degradation and vegetation loss, enabling stakeholders to take preventive measures before damage becomes irreversible.</p>
+                    <div class="d-flex mt-4">
+                        <div class="me-4">
+                            <h3 class="text-success">SDG 15</h3>
+                            <p>Directly supports UN Sustainable Development Goal 15: Life on Land</p>
+                        </div>
+                        <div>
+                            <h3 class="text-success">3.2B+</h3>
+                            <p>People affected by land degradation worldwide</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1569163139394-de44cb54d0c8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1031&q=80" alt="Land Degradation" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">The Global Challenge</h2>
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <h4 class="card-title">Causes of Land Degradation</h4>
+                            <p class="card-text">
+                                <ul>
+                                    <li>Deforestation & land clearing</li>
+                                    <li>Unsustainable agriculture</li>
+                                    <li>Overgrazing & soil compaction</li>
+                                    <li>Climate change effects</li>
+                                    <li>Urban expansion</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line-down"></i>
+                            </div>
+                            <h4 class="card-title">Effects & Impacts</h4>
+                            <p class="card-text">
+                                <ul>
+                                    <li>Reduced agricultural productivity</li>
+                                    <li>Loss of biodiversity</li>
+                                    <li>Increased poverty & food insecurity</li>
+                                    <li>Water scarcity & quality issues</li>
+                                    <li>Climate change acceleration</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-globe-africa"></i>
+                            </div>
+                            <h4 class="card-title">East Africa Focus</h4>
+                            <p class="card-text">
+                                <ul>
+                                    <li>Ethiopia: 50% of cultivated land degraded</li>
+                                    <li>Vulnerable soil types: Vertisols, Nitisols</li>
+                                    <li>Climate stressors: Droughts, erratic rainfall</li>
+                                    <li>Topography: Steep slopes increase erosion risk</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Our Solution</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-satellite"></i>
+                            </div>
+                            <h4 class="card-title">Satellite Monitoring</h4>
+                            <p class="card-text">Continuous monitoring using Sentinel-2, Landsat, and other satellite data sources to detect subtle changes in land health.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h4 class="card-title">AI-Powered Analysis</h4>
+                            <p class="card-text">Advanced machine learning models analyze multiple vegetation and soil indices to calculate our proprietary Land Health Index (LHI).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <h4 class="card-title">Early Warning System</h4>
+                            <p class="card-text">Automated alerts notify stakeholders when early signs of degradation are detected, enabling timely intervention.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <h4 class="card-title">Interactive Dashboard</h4>
+                            <p class="card-text">User-friendly interface for visualizing land health metrics, historical trends, and risk zones with actionable insights.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Live Demo</h2>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="map-container mb-4" id="map"></div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Land Health Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="analysis-result">
+                                <p class="text-center">Click on the map to analyze land health</p>
+                            </div>
+                            <div class="mt-4">
+                                <h6>Region Selection</h6>
+                                <select class="form-select" id="region-select">
+                                    <option value="ethiopia">Ethiopia</option>
+                                    <option value="kenya">Kenya</option>
+                                    <option value="tanzania">Tanzania</option>
+                                    <option value="east-africa">East Africa</option>
+                                </select>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-outline-success w-100" id="subscribe-btn">
+                                    <i class="fas fa-bell me-2"></i>Subscribe to Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section id="technology" class="tech-stack py-5">
+        <div class="container">
+            <h2 class="section-title">Technology Stack</h2>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="tech-item">
+                        <div class="tech-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h5>Backend & AI</h5>
+                        <p>Python, FastAPI, TensorFlow, Scikit-learn, Pandas</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="tech-item">
+                        <div class="tech-icon">
+                            <i class="fab fa-js-square"></i>
+                        </div>
+                        <h5>Frontend</h5>
+                        <p>React.js, Leaflet.js, Chart.js, Bootstrap</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="tech-item">
+                        <div class="tech-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h5>Data & GIS</h5>
+                        <p>PostgreSQL, PostGIS, Google Earth Engine, Sentinel Hub</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="tech-item">
+                        <div class="tech-icon">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <h5>Deployment</h5>
+                        <p>Docker, AWS, Google Cloud, GitHub Actions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Metrics -->
+    <section id="impact" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Impact Metrics</h2>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="impact-metric">
+                        <span class="metric-value">70%</span>
+                        <span class="metric-label">Reduction in Detection Time</span>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="impact-metric">
+                        <span class="metric-value">1M+</span>
+                        <span class="metric-label">Hectares Monitored</span>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="impact-metric">
+                        <span class="metric-value">50%</span>
+                        <span class="metric-label">Cost Savings in Remediation</span>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="impact-metric">
+                        <span class="metric-value">SDG 15</span>
+                        <span class="metric-label">Direct Contribution</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Roadmap -->
+            <h2 class="section-title mt-5">Project Roadmap</h2>
+            <div class="roadmap-timeline">
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h5>Phase 1: MVP Development</h5>
+                        <small class="text-muted">Current - 3 Months</small>
+                        <p>Core AI model, basic dashboard, East Africa regional focus</p>
+                    </div>
+                </div>
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <h5>Phase 2: Pilot & Validation</h5>
+                        <small class="text-muted">6-12 Months</small>
+                        <p>Field validation, enhanced models, partner integration</p>
+                    </div>
+                </div>
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h5>Phase 3: Scale & Impact</h5>
+                        <small class="text-muted">1-2 Years</small>
+                        <p>Regional expansion, mobile alerts, predictive analytics</p>
+                    </div>
+                </div>
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <h5>Phase 4: Global Platform</h5>
+                        <small class="text-muted">2+ Years</small>
+                        <p>Worldwide deployment, policy integration, SDG reporting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Team & Collaboration</h2>
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="team-member">
+                        <img src="https://i.ibb.co/gbdbMtwG/edre.jpg" alt="Edris Abdella" class="team-photo">
+                        <h5>Edris Abdella</h5>
+                        <p class="text-muted">Project Lead</p>
+                        <p>Vision & Strategy, Project Management</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="team-member">
+                        <img src="https://images.unsplash.com/photo-1537511446984-935f663eb2f5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" alt="EastEdge Engineering" class="team-photo">
+                        <h5>EastEdge Engineering</h5>
+                        <p class="text-muted">Engineering Partner</p>
+                        <p>Core Development, System Architecture, DevOps</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fas fa-globe"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="team-member">
+                        <img src="https://i.ibb.co/mCbpcHxR/ENG-HYKAL.jpg" alt="Domain Experts & Volunteers" class="team-photo">
+                        <h5>Our Contributors</h5>
+                        <p class="text-muted">Domain Experts & Volunteers</p>
+                        <p>Agronomists, Data Scientists, Environmental Specialists</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fas fa-hands-helping"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">Join Our Mission</h4>
+                            <p class="card-text">We're looking for partners, contributors, and supporters to help scale our impact.</p>
+                            <a href="#contact" class="btn btn-success">Get Involved</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Contact & Get Involved</h2>
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="contact-form">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" class="form-control" id="name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="organization" class="form-label">Organization</label>
+                                    <input type="text" class="form-control" id="organization">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="interest" class="form-label">Area of Interest</label>
+                                    <select class="form-select" id="interest">
+                                        <option value="partnership">Partnership</option>
+                                        <option value="contribution">Technical Contribution</option>
+                                        <option value="pilot">Pilot Program</option>
+                                        <option value="funding">Funding/Support</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success">Send Message</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5><i class="fas fa-earth-americas me-2"></i>TerraGuard</h5>
+                    <p>AI-powered early detection of soil degradation and vegetation loss for a sustainable planet.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#problem">Problem</a></li>
+                        <li><a href="#solution">Solution</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#technology">Technology</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mb-4">
+                    <h5>Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://github.com/Edrisabdella/Early-Detection-of-Soil-Degradation-and-Vegetation-Loss">GitHub Repository</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Research Papers</a></li>
+                        <li><a href="#">SDG 15 Resources</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mb-4">
+                    <h5>Contact Info</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-user me-2"></i>Edris Abdella</li>
+                        <li><i class="fas fa-envelope me-2"></i>edrisabdella178@gmail.com</li>
+                        <li><i class="fas fa-phone me-2"></i>+251905131051</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i>East Africa</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2023 TerraGuard. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Open source project under MIT License</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([9.145, 40.4897], 6);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Sample risk data (in a real app, this would come from an API)
+        const riskData = [
+            {lat: 9.145, lng: 40.4897, risk: 'high', lhi: 0.32, vegetation: 0.28, soil: 0.36},
+            {lat: 8.5, lng: 39.5, risk: 'medium', lhi: 0.58, vegetation: 0.62, soil: 0.54},
+            {lat: 10.0, lng: 41.5, risk: 'low', lhi: 0.82, vegetation: 0.85, soil: 0.79},
+            {lat: 7.5, lng: 38.5, risk: 'high', lhi: 0.25, vegetation: 0.22, soil: 0.28},
+            {lat: 11.0, lng: 39.0, risk: 'medium', lhi: 0.63, vegetation: 0.68, soil: 0.58}
+        ];
+        
+        // Add risk markers to map
+        riskData.forEach(point => {
+            let color;
+            if (point.risk === 'high') color = 'red';
+            else if (point.risk === 'medium') color = 'orange';
+            else color = 'green';
+            
+            const marker = L.circleMarker([point.lat, point.lng], {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.7,
+                radius: 8
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <h6>Land Health Analysis</h6>
+                <p><strong>LHI Score:</strong> ${point.lhi}</p>
+                <p><strong>Risk Level:</strong> <span class="risk-${point.risk}">${point.risk.toUpperCase()}</span></p>
+                <p><strong>Vegetation Health:</strong> ${point.vegetation}</p>
+                <p><strong>Soil Health:</strong> ${point.soil}</p>
+            `);
+        });
+        
+        // Map click handler
+        map.on('click', function(e) {
+            // In a real app, this would call an API
+            // For demo, we'll simulate a response
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Simulate API call delay
+            document.getElementById('analysis-result').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing land health...</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                // Simulate finding the closest data point
+                let closestPoint = riskData[0];
+                let minDistance = Number.MAX_VALUE;
+                
+                riskData.forEach(point => {
+                    const distance = Math.sqrt(Math.pow(point.lat - lat, 2) + Math.pow(point.lng - lng, 2));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPoint = point;
+                    }
+                });
+                
+                const riskClass = `risk-${closestPoint.risk}`;
+                const riskColor = closestPoint.risk === 'high' ? 'danger' : 
+                                 closestPoint.risk === 'medium' ? 'warning' : 'success';
+                
+                document.getElementById('analysis-result').innerHTML = `
+                    <h6>Analysis Results</h6>
+                    <p><strong>Location:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+                    <p><strong>Land Health Index:</strong> ${closestPoint.lhi}</p>
+                    <p><strong>Vegetation Health:</strong> ${closestPoint.vegetation}</p>
+                    <p><strong>Soil Health:</strong> ${closestPoint.soil}</p>
+                    <p><strong>Risk Level:</strong> <span class="text-${riskColor}">${closestPoint.risk.toUpperCase()}</span></p>
+                    <div class="alert alert-${riskColor} mt-3">
+                        <small>
+                            ${closestPoint.risk === 'high' ? 
+                              'High degradation risk detected. Immediate intervention recommended.' : 
+                              closestPoint.risk === 'medium' ? 
+                              'Moderate degradation risk. Monitor closely and consider preventive measures.' : 
+                              'Low degradation risk. Land is currently healthy.'}
+                        </small>
+                    </div>
+                `;
+            }, 1500);
+        });
+        
+        // Subscribe button handler
+        document.getElementById('subscribe-btn').addEventListener('click', function() {
+            const region = document.getElementById('region-select').value;
+            alert(`Thank you! You've subscribed to ${region} land degradation alerts. We'll notify you when risks are detected.`);
+        });
+        
+        // Contact form handler
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
