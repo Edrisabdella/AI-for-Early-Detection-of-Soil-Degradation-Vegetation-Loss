@@ -19,3 +19,4 @@ class NDVIModel:
         if arr.ndim == 3:
             arr = np.expand_dims(arr, 0)
         return self.model.predict(arr)
+    

@@ -27,3 +27,4 @@ async def predict_ndvi_patch(nir: UploadFile = File(...), red: UploadFile = File
                 return JSONResponse({"risk_score": float(preds[0][0])})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
